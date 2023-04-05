@@ -366,6 +366,101 @@ export type MyTypeResolvers<ContextType = any, ParentType extends ResolversParen
       expect(result.content).not.toBeSimilarStringTo('export type ResolversUnionTypes');
       expect(result.content).not.toBeSimilarStringTo('export type ResolversUnionParentTypes');
     });
+
+    it('resolversNonOptionalTypename - adds non-optional typenames to ResolversInterfaceTypes', async () => {
+      const result = await plugin(
+        resolversTestingSchema,
+        [],
+        { resolversNonOptionalTypename: { interfaceImplementingType: true } },
+        { outputFile: '' }
+      );
+
+      expect(result.content).toBeSimilarStringTo(`
+        export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = {
+          Node: ( SomeNode & { __typename: 'SomeNode' } );
+          AnotherNode: ( Omit<AnotherNodeWithChild, 'unionChild'> & { unionChild?: Maybe<RefType['ChildUnion']> } & { __typename: 'AnotherNodeWithChild' } ) | ( Omit<AnotherNodeWithAll, 'unionChild' | 'unionChildren'> & { unionChild?: Maybe<RefType['ChildUnion']>, unionChildren: Array<RefType['ChildUnion']> } & { __typename: 'AnotherNodeWithAll' } );
+          WithChild: ( Omit<AnotherNodeWithChild, 'unionChild'> & { unionChild?: Maybe<RefType['ChildUnion']> } & { __typename: 'AnotherNodeWithChild' } ) | ( Omit<AnotherNodeWithAll, 'unionChild' | 'unionChildren'> & { unionChild?: Maybe<RefType['ChildUnion']>, unionChildren: Array<RefType['ChildUnion']> } & { __typename: 'AnotherNodeWithAll' } );
+          WithChildren: ( Omit<AnotherNodeWithAll, 'unionChild' | 'unionChildren'> & { unionChild?: Maybe<RefType['ChildUnion']>, unionChildren: Array<RefType['ChildUnion']> } & { __typename: 'AnotherNodeWithAll' } );
+        };
+      `);
+    });
+
+    it('resolversNonOptionalTypename - adds non-optional typenames to ResolversInterfaceTypes for mappers with no placeholder', async () => {
+      const result = await plugin(
+        resolversTestingSchema,
+        [],
+        {
+          resolversNonOptionalTypename: { interfaceImplementingType: true },
+          mappers: { AnotherNodeWithChild: 'AnotherNodeWithChildMapper' },
+        },
+        { outputFile: '' }
+      );
+
+      expect(result.content).toBeSimilarStringTo(`
+        export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = {
+          Node: ( SomeNode & { __typename: 'SomeNode' } );
+          AnotherNode: ( AnotherNodeWithChildMapper & { __typename: 'AnotherNodeWithChild' } ) | ( Omit<AnotherNodeWithAll, 'unionChild' | 'unionChildren'> & { unionChild?: Maybe<RefType['ChildUnion']>, unionChildren: Array<RefType['ChildUnion']> } & { __typename: 'AnotherNodeWithAll' } );
+          WithChild: ( AnotherNodeWithChildMapper & { __typename: 'AnotherNodeWithChild' } ) | ( Omit<AnotherNodeWithAll, 'unionChild' | 'unionChildren'> & { unionChild?: Maybe<RefType['ChildUnion']>, unionChildren: Array<RefType['ChildUnion']> } & { __typename: 'AnotherNodeWithAll' } );
+          WithChildren: ( Omit<AnotherNodeWithAll, 'unionChild' | 'unionChildren'> & { unionChild?: Maybe<RefType['ChildUnion']>, unionChildren: Array<RefType['ChildUnion']> } & { __typename: 'AnotherNodeWithAll' } );
+        };
+      `);
+    });
+
+    it('resolversNonOptionalTypename - adds non-optional typenames to ResolversInterfaceTypes for mappers with placeholder', async () => {
+      const result = await plugin(
+        resolversTestingSchema,
+        [],
+        {
+          resolversNonOptionalTypename: { interfaceImplementingType: true },
+          mappers: { AnotherNodeWithChild: 'Wrapper<{T}>' },
+        },
+        { outputFile: '' }
+      );
+
+      expect(result.content).toBeSimilarStringTo(`
+        export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = {
+          Node: ( SomeNode & { __typename: 'SomeNode' } );
+          AnotherNode: ( Wrapper<Omit<AnotherNodeWithChild, 'unionChild'> & { unionChild?: Maybe<RefType['ChildUnion']> }> & { __typename: 'AnotherNodeWithChild' } ) | ( Omit<AnotherNodeWithAll, 'unionChild' | 'unionChildren'> & { unionChild?: Maybe<RefType['ChildUnion']>, unionChildren: Array<RefType['ChildUnion']> } & { __typename: 'AnotherNodeWithAll' } );
+          WithChild: ( Wrapper<Omit<AnotherNodeWithChild, 'unionChild'> & { unionChild?: Maybe<RefType['ChildUnion']> }> & { __typename: 'AnotherNodeWithChild' } ) | ( Omit<AnotherNodeWithAll, 'unionChild' | 'unionChildren'> & { unionChild?: Maybe<RefType['ChildUnion']>, unionChildren: Array<RefType['ChildUnion']> } & { __typename: 'AnotherNodeWithAll' } );
+          WithChildren: ( Omit<AnotherNodeWithAll, 'unionChild' | 'unionChildren'> & { unionChild?: Maybe<RefType['ChildUnion']>, unionChildren: Array<RefType['ChildUnion']> } & { __typename: 'AnotherNodeWithAll' } );
+        };
+      `);
+    });
+
+    it('resolversNonOptionalTypename - adds non-optional typenames to ResolversInterfaceTypes for default mappers with placeholder', async () => {
+      const result = await plugin(
+        resolversTestingSchema,
+        [],
+        {
+          resolversNonOptionalTypename: { interfaceImplementingType: true },
+          defaultMapper: 'Partial<{T}>',
+        },
+        { outputFile: '' }
+      );
+
+      expect(result.content).toBeSimilarStringTo(`
+        export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = {
+          Node: ( Partial<SomeNode> & { __typename: 'SomeNode' } );
+          AnotherNode: ( Partial<Omit<AnotherNodeWithChild, 'unionChild'> & { unionChild?: Maybe<RefType['ChildUnion']> }> & { __typename: 'AnotherNodeWithChild' } ) | ( Partial<Omit<AnotherNodeWithAll, 'unionChild' | 'unionChildren'> & { unionChild?: Maybe<RefType['ChildUnion']>, unionChildren: Array<RefType['ChildUnion']> }> & { __typename: 'AnotherNodeWithAll' } );
+          WithChild: ( Partial<Omit<AnotherNodeWithChild, 'unionChild'> & { unionChild?: Maybe<RefType['ChildUnion']> }> & { __typename: 'AnotherNodeWithChild' } ) | ( Partial<Omit<AnotherNodeWithAll, 'unionChild' | 'unionChildren'> & { unionChild?: Maybe<RefType['ChildUnion']>, unionChildren: Array<RefType['ChildUnion']> }> & { __typename: 'AnotherNodeWithAll' } );
+          WithChildren: ( Partial<Omit<AnotherNodeWithAll, 'unionChild' | 'unionChildren'> & { unionChild?: Maybe<RefType['ChildUnion']>, unionChildren: Array<RefType['ChildUnion']> }> & { __typename: 'AnotherNodeWithAll' } );
+        };
+      `);
+    });
+
+    it('resolversNonOptionalTypename - does not create ResolversInterfaceTypes for default mappers with no placeholder', async () => {
+      const result = await plugin(
+        resolversTestingSchema,
+        [],
+        {
+          resolversNonOptionalTypename: { interfaceImplementingType: true },
+          defaultMapper: 'unknown',
+        },
+        { outputFile: '' }
+      );
+
+      expect(result.content).not.toBeSimilarStringTo('export type ResolversInterfaceTypes');
+    });
   });
 
   it('directiveResolverMappings - should generate correct types (import definition)', async () => {
