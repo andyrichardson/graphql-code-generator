@@ -1,5 +1,11 @@
 # @graphql-codegen/cli
 
+## 3.3.1
+
+### Patch Changes
+
+- [#9267](https://github.com/dotansimha/graphql-code-generator/pull/9267) [`183749346`](https://github.com/dotansimha/graphql-code-generator/commit/1837493464e0b661520deb38c1e5cbd5ed46f978) Thanks [@milesrichardson](https://github.com/milesrichardson)! - Fix watch mode to listen to longest common directory prefix of relevant files, rather than only files below the current working directory (fixes #9266).
+
 ## 3.3.0
 
 ### Minor Changes
